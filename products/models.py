@@ -2,6 +2,31 @@ from django.db import models
 from django.conf import settings
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название категории')
+
+    class Meta:
+        verbose_name = 'категория'
+        verbose_name_plural = 'Категории'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Shop(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название магазина')
+    categories = models.ManyToManyField(Category, related_name='shops', verbose_name='Категории')
+
+    class Meta:
+        verbose_name = 'магазин'
+        verbose_name_plural = 'Магазины'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Supplier(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
