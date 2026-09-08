@@ -48,11 +48,13 @@ class Supplier(models.Model):
 
 
 class Product(models.Model):
-    supplier = models.ForeignKey(
-        Supplier,
+    category = models.ForeignKey(
+        Category,
         on_delete=models.CASCADE,
         related_name='products',
-        verbose_name='Поставщик'
+        verbose_name='Категория',
+        blank=True,
+        null=True
     )
     name = models.CharField(max_length=255, verbose_name='Наименование')
     description = models.TextField(blank=True, verbose_name='Описание')
