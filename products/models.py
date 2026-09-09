@@ -73,6 +73,80 @@ class Product(models.Model):
         return self.name
 
 
+class Parameter(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название параметра')
+
+    class Meta:
+        verbose_name = 'параметр'
+        verbose_name_plural = 'Параметры'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ProductInfo(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='shop_infos',
+        verbose_name='Товар'
+    )
+    shop = models.ForeignKey(
+        Shop,
+        on_delete=models.CASCADE,
+        related_name='product_infos',
+        verbose_name='Магазин'
+    )
+    external_id = models.CharField(max_length=255, blank=True, verbose_name='Внешний ID')
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
+    quantity = models.IntegerField(default=0, verbose_name='Количество')
+
+    class Meta:
+        verbose_name = 'информация о товаре в магазине'
+        verbose_name_plural = 'Информация о товарах в магазинах'
+        ordering = ['shop', 'product']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'shop', 'external_id'],
+                name='unique_product_shop_external_id'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product.name} ({self.shop.name})"
+
+
+class ProductParameter(models.Model):
+    product_info = models.ForeignKey(
+        ProductInfo,
+        on_delete=models.CASCADE,
+        related_name='parameters',
+        verbose_name='Информация о товаре'
+    )
+    parameter = models.ForeignKey(
+        Parameter,
+        on_delete=models.CASCADE,
+        related_name='product_parameters',
+        verbose_name='Параметр'
+    )
+    value = models.TextField(verbose_name='Значение')
+
+    class Meta:
+        verbose_name = 'параметр товара'
+        verbose_name_plural = 'Параметры товаров'
+        ordering = ['parameter']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product_info', 'parameter'],
+                name='unique_product_info_parameter'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product_info.product.name} - {self.parameter.name}: {self.value}"
+
+
 class PriceUpdate(models.Model):
     supplier = models.ForeignKey(
         Supplier,

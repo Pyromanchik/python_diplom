@@ -1,15 +1,15 @@
 from rest_framework import serializers
-from products.models import Product, Supplier, PriceUpdate
+from products.models import Product, Supplier, PriceUpdate, Category
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    supplier_name = serializers.CharField(source='supplier.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'supplier', 'supplier_name', 'name', 'description',
+        fields = ('id', 'category', 'category_name', 'name', 'description',
                   'characteristics', 'price', 'quantity', 'created_at', 'updated_at')
-        read_only_fields = ('supplier', 'created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at')
 
 
 class SupplierSerializer(serializers.ModelSerializer):

@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
-from products.models import Product, Supplier
+from products.models import Product, Supplier, Category
 from accounts.models import Contact
 
 User = get_user_model()
@@ -27,6 +27,9 @@ class ProductTests(TestCase):
             is_accepting_orders=True
         )
 
+        # Создаём категорию
+        self.category = Category.objects.create(name='Электроника')
+
         # Создаём пользователя-клиента
         self.client_user = User.objects.create(
             first_name='Иван',
@@ -37,14 +40,14 @@ class ProductTests(TestCase):
 
         # Создаём товары
         self.product1 = Product.objects.create(
-            supplier=self.supplier,
+            category=self.category,
             name='Товар 1',
             description='Описание товара 1',
             price=100.00,
             quantity=50
         )
         self.product2 = Product.objects.create(
-            supplier=self.supplier,
+            category=self.category,
             name='Товар 2',
             description='Описание товара 2',
             price=200.00,
@@ -68,21 +71,6 @@ class ProductTests(TestCase):
         data = self._get_paginated_data(response)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], 'Товар 1')
-
-    def test_filter_by_supplier(self):
-        self.client.force_authenticate(user=self.client_user)
-        response = self.client.get(f'/api/products/products/?supplier={self.supplier.id}')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self._get_paginated_data(response)), 2)
-
-    def test_filter_by_accepting_orders(self):
-        self.supplier.is_accepting_orders = False
-        self.supplier.save()
-
-        self.client.force_authenticate(user=self.client_user)
-        response = self.client.get('/api/products/products/?supplier__is_accepting_orders=true')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(self._get_paginated_data(response)), 0)
 
     def test_create_product(self):
         self.client.force_authenticate(user=self.supplier_user)

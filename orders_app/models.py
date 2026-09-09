@@ -108,6 +108,11 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
         ordering = ['-created_at']
 
+    def save(self, *args, **kwargs):
+        if not self.number:
+            self.number = f"ORD-{self.user.id}-{Order.objects.filter(user=self.user).count() + 1:06d}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Заказ #{self.number}"
 
@@ -124,6 +129,13 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Товар'
     )
+    shop = models.ForeignKey(
+        'products.Shop',
+        on_delete=models.CASCADE,
+        verbose_name='Магазин',
+        blank=True,
+        null=True
+    )
     quantity = models.IntegerField(verbose_name='Количество')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
     sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма')
@@ -132,6 +144,12 @@ class OrderItem(models.Model):
         verbose_name = 'элемент заказа'
         verbose_name_plural = 'Элементы заказа'
         ordering = ['id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['order', 'product', 'shop'],
+                name='unique_order_item_product_shop'
+            )
+        ]
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"

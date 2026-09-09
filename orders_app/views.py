@@ -173,7 +173,7 @@ class OrderHistoryView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Order.objects.filter(
             user=self.request.user
-        ).prefetch_related('items__product__supplier')
+        ).prefetch_related('items__product__category')
 
         # Filter by date range
         date_from = self.request.query_params.get('date_from')

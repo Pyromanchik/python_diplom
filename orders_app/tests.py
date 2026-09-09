@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
 from accounts.models import Contact
-from products.models import Product, Supplier
+from products.models import Product, Category
 from orders_app.models import Cart, CartItem, Order, OrderItem
 
 User = get_user_model()
@@ -15,23 +15,10 @@ class CartTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.supplier_user = User.objects.create(
-            first_name='Поставщик',
-            last_name='Тест',
-            email='supplier_cart@example.com',
-            role='supplier'
-        )
-        self.supplier = Supplier.objects.create(
-            user=self.supplier_user,
-            name='Тестовый поставщик'
-        )
-        self.product = Product.objects.create(
-            supplier=self.supplier,
-            name='Товар 1',
-            price=100.00,
-            quantity=50
-        )
+        # Создаём категорию
+        self.category = Category.objects.create(name='Электроника')
 
+        # Создаём пользователя-клиента
         self.client_user = User.objects.create(
             first_name='Иван',
             last_name='Клиент',
@@ -39,6 +26,14 @@ class CartTests(TestCase):
             role='client'
         )
         self.client.force_authenticate(user=self.client_user)
+
+        # Создаём товар
+        self.product = Product.objects.create(
+            category=self.category,
+            name='Товар 1',
+            price=100.00,
+            quantity=50
+        )
 
     def test_get_or_create_cart(self):
         response = self.client.get('/api/orders/cart/')
@@ -74,23 +69,10 @@ class OrderTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.supplier_user = User.objects.create(
-            first_name='Поставщик',
-            last_name='Тест',
-            email='supplier_order@example.com',
-            role='supplier'
-        )
-        self.supplier = Supplier.objects.create(
-            user=self.supplier_user,
-            name='Тестовый поставщик'
-        )
-        self.product = Product.objects.create(
-            supplier=self.supplier,
-            name='Товар 1',
-            price=100.00,
-            quantity=50
-        )
+        # Создаём категорию
+        self.category = Category.objects.create(name='Продукты')
 
+        # Создаём пользователя-клиента
         self.client_user = User.objects.create(
             first_name='Иван',
             last_name='Клиент',
@@ -109,8 +91,16 @@ class OrderTests(TestCase):
         )
         self.client.force_authenticate(user=self.client_user)
 
+        # Создаём товар
+        self.product = Product.objects.create(
+            category=self.category,
+            name='Товар 1',
+            price=100.00,
+            quantity=50
+        )
+
     def _get_paginated_data(self, response):
-        """Helper to extract results from paginated responses"""
+        """Инструмент для извлечения результатов"""
         return response.data.get('results', response.data)
 
     def test_confirm_order(self):
